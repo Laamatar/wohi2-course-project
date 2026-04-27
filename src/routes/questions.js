@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const prisma = require("../lib/prisma")
-
-const questions = require("../data/questions");
+const isOwner = require('../middleware/isOwner');
+const authenticate = require('../middleware/auth');
 
 
 function formatQuestion(question) {
@@ -12,6 +12,7 @@ function formatQuestion(question) {
     };
 }
 
+router.use(authenticate);
 
 //GET /api/questions, /api/questions?keyword=http
 router.get("/", async (req, res) => {
@@ -32,8 +33,8 @@ router.get("/", async (req, res) => {
 //GET /api/questions/:qId
 router.get("/:qId", async (req, res) =>{
     const questionId = Number(req.params.qId);
-    const question = await prima.question.findUnique({
-        where: { id: qId},
+    const question = await prisma.question.findUnique({
+        where: { id: questionId},
         include: { keywords: true },
     });
     
@@ -72,7 +73,7 @@ router.post("/", async (req, res) =>{
 })
 
 //PUT /api/questions/:qId
-router.put("/:qId", async (req, res) =>{
+router.put("/:qId", isOwner, async (req, res) =>{
     const questionId = Number(req.params.qId);
 
     const questionEntry = await prisma.question.findUnique({ where: { id: qId }});
@@ -87,7 +88,7 @@ router.put("/:qId", async (req, res) =>{
     }
     const keywordsArray = Array.isArray(keywords) ? keywords : [];
     const updatedQuestion = await prisma.question.update({
-        where: { id: qId },
+        where: { id: questionId },
         data: {
         question, answer,
         keywords: {
@@ -105,7 +106,7 @@ router.put("/:qId", async (req, res) =>{
 
 
 //DELETE /api/questions/:qId
-router.delete("/:qId", async (req, res) =>{
+router.delete("/:qId", isOwner, async (req, res) =>{
     const questionId = Number(req.params.qId);
     const question = await prisma.question.findUnique({
         where: { id: qId },
