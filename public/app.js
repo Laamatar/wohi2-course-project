@@ -123,6 +123,7 @@ async function handleAuth(e) {
     body.captchaToken = captchaToken;
   }
   try {
+    console.log("REGISTER BODY:", body);
     const data = await apiFetch(route, {
       method: "POST",
       body: JSON.stringify(body),
