@@ -129,6 +129,7 @@ async function handleAuth(e) {
   });
   if (isRegisterMode) {
     const captchaToken = grecaptcha.getResponse();
+    grecaptcha.reset();
     if (!captchaToken) {
       errorEl.textContent = "Please complete the CAPTCHA";
       return;
