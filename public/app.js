@@ -131,7 +131,6 @@ async function handleAuth(e) {
   });
   if (isRegisterMode) {
     const captchaToken = grecaptcha.getResponse();
-    grecaptcha.reset(captchaWidgetId);
     if (!captchaToken) {
       errorEl.textContent = "Please complete the CAPTCHA";
       return;
@@ -150,7 +149,7 @@ async function handleAuth(e) {
     showApp();
   } catch (err) {
     if (isRegisterMode && typeof grecaptcha !== "undefined") {
-      grecaptcha.reset(captchaWidgetId);
+      grecaptcha.reset();
     }
     errorEl.textContent = err.message;
   }
