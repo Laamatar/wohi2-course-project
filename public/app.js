@@ -107,7 +107,7 @@ function renderAuthForm() {
         captchaWidgetId = grecaptcha.render(
           document.querySelector(".g-recaptcha"),
           {
-            sitekey: "YOUR_SITE_KEY"
+            sitekey: "6LeKvQwtAAAAANCGL2dghRITn-ds4ycPB-auNVhx"
           }
         );
       }
