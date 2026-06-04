@@ -36,7 +36,11 @@ router.post("/register", async (req, res, next) => {
         );
 
         const captchaData = await captchaResponse.json();
+        console.log("CAPTCHA TOKEN:", captchaToken);
 
+        console.log("CAPTCHA RESPONSE STATUS:", captchaResponse.status);
+
+        console.log("CAPTCHA RESPONSE:", captchaData);
         if (!captchaData.success) {
             throw new ValidationError("CAPTCHA verification failed");
         }
