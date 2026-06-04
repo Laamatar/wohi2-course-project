@@ -66,7 +66,14 @@ function renderAuthForm() {
           </div>`;
         })
         .join("")}
-      <button type="submit">${title}</button>
+        ${isRegisterMode ? `
+        <div
+        class="g-recaptcha"
+        data-sitekey="6LeKvQwtAAAAANCGL2dghRITn-ds4ycPB-auNVhx">
+        </div>
+        ` : ""}
+
+<button type="submit">${title}</button>
     </form>
     <p class="switch-text">${switchText}</p>
     <p id="auth-error" class="error"></p>
@@ -79,6 +86,18 @@ function renderAuthForm() {
     isRegisterMode = !isRegisterMode;
     renderAuthForm();
   });
+  if (isRegisterMode) {
+  setTimeout(() => {
+    if (window.grecaptcha) {
+      grecaptcha.render(
+        document.querySelector(".g-recaptcha"),
+        {
+          sitekey: "6LeKvQwtAAAAANCGL2dghRITn-ds4ycPB-auNVhx"
+        }
+      );
+    }
+  }, 0);
+}
 }
 
 async function handleAuth(e) {
@@ -93,7 +112,16 @@ async function handleAuth(e) {
   fields.forEach((f) => {
     body[f] = document.getElementById(f).value;
   });
+  if (isRegisterMode) {
+    const captchaToken = grecaptcha.getResponse();
 
+    if (!captchaToken) {
+      errorEl.textContent = "Please complete the CAPTCHA";
+      return;
+    }
+
+    body.captchaToken = captchaToken;
+  }
   try {
     const data = await apiFetch(route, {
       method: "POST",
@@ -102,6 +130,9 @@ async function handleAuth(e) {
     setToken(data.token);
     showApp();
   } catch (err) {
+    if (isRegisterMode && typeof grecaptcha !== "undefined") {
+      grecaptcha.reset();
+    }
     errorEl.textContent = err.message;
   }
 }

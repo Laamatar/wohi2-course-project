@@ -5,15 +5,40 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const { ValidationError, ConflictError, UnauthorizedError, ForbiddenError } = require('../lib/errors');
 const SECRET = process.env.JWT_SECRET;
+const CAPTCHAKEY = process.env.RECAPTCHA_SECRET_KEY;
 
 // POST /api/auth/register
 router.post("/register", async (req, res, next) => {
     try {
 
-        const { email, password, name } = req.body;
+        const { email, password, name, captchaToken } = req.body;
+
+        if (!captchaToken) {
+            throw new ValidationError("CAPTCHA is required");
+        }
 
         if (!email || !password || !name) {
             throw new ValidationError("email, password and name are required");
+        }
+
+        const captchaResponse = await fetch(
+            "https://www.google.com/recaptcha/api/siteverify",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: new URLSearchParams({
+                    secret: CAPTCHAKEY,
+                    response: captchaToken
+                })
+            }
+        );
+
+        const captchaData = await captchaResponse.json();
+
+        if (!captchaData.success) {
+            throw new ValidationError("CAPTCHA verification failed");
         }
 
         const existingUser = await prisma.user.findUnique({
