@@ -426,13 +426,7 @@ async function showQuestionForm(qId) {
     body.append("question", document.getElementById("q-question").value);
     body.append("answer", document.getElementById("q-answer").value);
     body.append("keywords", document.getElementById("q-keywords").value);
-    if(document.getElementById("q-difficulty").value <= 5 && document.getElementById("q-difficulty").value >= 1) {
-      body.append("difficulty", document.getElementById("q-difficulty").value);
-    } else if (document.getElementById("q-difficulty").value > 5) {
-      body.append("difficulty", 5);
-    } else {
-      body.append("difficulty", 1);
-    }
+    body.append("difficulty", document.getElementById("q-difficulty").value);
     const imageFile = document.getElementById("q-image").files[0];
     if (imageFile) body.append("image", imageFile);
 

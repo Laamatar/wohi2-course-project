@@ -58,12 +58,25 @@ function formatAttempt(attempt, question) {
 
 router.use(authenticate);
 
-//GET /api/questions, /api/questions?keyword=http&page=1&limit=5
+//GET /api/questions, /api/questions?keyword=http&page=1&limit=5&difficultyMin=1&difficultyMax=4
 router.get("/", async (req, res) => {
-    const {keyword} = req.query;
+    const { keyword, difficultyMin, difficultyMax } = req.query;
 
     const where = keyword ? 
     { keywords: { some: { name: keyword } } } : {};
+
+
+    if (difficultyMin || difficultyMax) {
+        where.difficulty = {};
+
+        if (difficultyMin) {
+        where.difficulty.gte = Number(difficultyMin);
+        }
+
+        if (difficultyMax) {
+        where.difficulty.lte = Number(difficultyMax);
+        }
+    }
 
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const limit = Math.max(1, Math.min(100, parseInt(req.query.limit)) || 5);
@@ -138,7 +151,7 @@ router.get("/:qId", async (req, res, next) =>{
 router.post("/", upload.single("image"), async (req, res, next) =>{
 
     try {
-        const {question, answer, keywords} = QuestionInput.parse(req.body);
+        const {question, answer, keywords, difficulty} = QuestionInput.parse(req.body);
 
         const userId = req.user.userId;
 
@@ -154,7 +167,7 @@ router.post("/", upload.single("image"), async (req, res, next) =>{
 
         const newQuestion = await prisma.question.create({
             data : {
-            question, answer, imageUrl, userId,
+            question, answer, imageUrl, userId, difficulty,
             keywords: {
                 connectOrCreate: keywordsArray.map((kw)=> ({
                     where: { name: kw }, create: { name:kw },
@@ -183,15 +196,22 @@ router.put("/:qId", upload.single("image"), isOwner, async (req, res, next) =>{
         next(err);
     }
     try {
+        
+        const questionId = Number(req.params.qId);
+        console.log("trying to PUT");
         const {question, answer, keywords} = QuestionInput.parse(req.body);
         const keywordsArray = Array.isArray(keywords) ? keywords : [];
         
         const imageUrl = req.file ? `/uploads/${req.file.filename}`:null;
 
+        const difficulty = Number(req.body.difficulty);
+        console.log("BODY:", req.body);
+        console.log(difficulty);
+
         const updatedQuestion = await prisma.question.update({
             where: { id: questionId },
             data: {
-            question, answer, imageUrl,
+            question, answer, imageUrl, difficulty,
             keywords: {
                 set: [],
                 connectOrCreate: keywordsArray.map((kw) => ({
