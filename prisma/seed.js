@@ -37,12 +37,34 @@ async function main() {
   const hashedPassword = await bcrypt.hash("1234", 10);
   const user = await prisma.user.create({
     data: {
-      email: "example@example.org",
+      email: "editor@example.org",
       password: hashedPassword,
-      name: "Example user"
+      name: "Example editor",
+      role: "editor"
     }
   });
+
+  const userplayer = await prisma.user.create({
+    data: {
+      email: "player@example.org",
+      password: hashedPassword,
+      name: "Example player",
+      role: "player"
+    }
+  });
+  
+  const useradmin = await prisma.user.create({
+    data: {
+      email: "admin@example.org",
+      password: hashedPassword,
+      name: "Example admin",
+      role: "admin"
+    }
+  });
+
   console.log("Created user: ", user.email);
+  console.log("Created user: ", userplayer.email);
+  console.log("Created user: ", useradmin.email);
 
 
   for (const question of seedQuestions) {

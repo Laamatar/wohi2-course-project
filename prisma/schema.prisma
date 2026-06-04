@@ -14,6 +14,7 @@ model User {
   name     String @db.VarChar(100)
   questions    Question[]
   attempts  Attempt[]
+  role      String @db.VarChar(255) @default("editor")
 
   @@map("users")
 }

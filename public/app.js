@@ -13,6 +13,18 @@ function getCurrentUserId() {
   }
 }
 
+function getCurrentUserRole() {
+  const token = getToken();
+  if (!token) return null;
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    console.log(payload.role);
+    return payload.role;
+  } catch {
+    return null;
+  }
+}
+
 function getToken() {
   return localStorage.getItem(CONFIG.STORAGE_KEY);
 }
@@ -33,6 +45,7 @@ async function apiFetch(route, options = {}) {
   if (token) headers["Authorization"] = `Bearer ${token}`;
   const res = await fetch(`${CONFIG.API_URL}${route}`, { ...options, headers });
   const data = await res.json();
+  console.log(data.error);
   if (!res.ok) throw new Error(data.error || data.msg || "Request failed");
   return data;
 }
@@ -158,10 +171,12 @@ async function loadQuestions(keyword = "", page = 1) {
     const result = await apiFetch(`${CONFIG.ROUTES.QUESTIONS}?${params}`);
     const { data: questions, total, totalPages } = result;
     const currentUserId = getCurrentUserId();
+    const currentUserRole = getCurrentUserRole();
 
     const solvedCount = questions.filter((q) => q[CONFIG.API_FIELDS.SOLVED]).length;
 
     let html = `
+    <div> <h2> Hello ${currentUserRole}! </h2> </div>
       <div class="score-bar">
         <div class="score-item">
           <div class="score-value">${total}</div>
@@ -173,7 +188,11 @@ async function loadQuestions(keyword = "", page = 1) {
         </div>
       </div>
       <div class="toolbar">
-        <button class="btn btn-primary" id="new-question-btn">+ New Question</button>
+        ${
+              "player" === currentUserRole
+                ? ""
+                : `<button class="btn btn-primary" id="new-question-btn">+ New Question</button>`
+          }
         <div class="search-bar">
           <input type="text" id="keyword-input" placeholder="Search by keyword..." value="${keyword}" />
           <button class="btn btn-search" id="search-btn">Search</button>
@@ -210,6 +229,14 @@ async function loadQuestions(keyword = "", page = 1) {
                   </span>`
                 : ""
             }
+            ${
+              "admin" === currentUserRole
+                ? `<span class="owner-actions">
+                    <button class="btn btn-edit" data-id="${q.id}">Edit</button>
+                    <button class="btn btn-delete" data-id="${q.id}">Delete</button>
+                  </span>`
+                : ""
+            }
           </div>
         </article>`
         )
@@ -227,7 +254,9 @@ async function loadQuestions(keyword = "", page = 1) {
 
     container.innerHTML = html;
 
-    document.getElementById("new-question-btn").addEventListener("click", () => showQuestionForm());
+    if(currentUserRole!=="player"){
+      document.getElementById("new-question-btn").addEventListener("click", () => showQuestionForm());
+    }
 
     document.getElementById("search-btn").addEventListener("click", () => {
       loadQuestions(document.getElementById("keyword-input").value.trim(), 1);

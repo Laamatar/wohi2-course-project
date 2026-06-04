@@ -5,7 +5,7 @@ const isOwner = require('../middleware/isOwner');
 const authenticate = require('../middleware/auth');
 const multer = require("multer");
 const path = require("path");
-const { NotFoundError, ValidationError } = require('../lib/errors');
+const { NotFoundError, ValidationError, ForbiddenError } = require('../lib/errors');
 const {z} = require("zod");
 
 
@@ -113,6 +113,12 @@ router.post("/", upload.single("image"), async (req, res, next) =>{
         const {question, answer, keywords} = QuestionInput.parse(req.body);
 
         const userId = req.user.userId;
+
+        const userRole = req.user.role;
+
+        if(userRole==="player"){
+            throw new ForbiddenError("Only editors and admins can create questions");
+        }
 
         const keywordsArray = Array.isArray(keywords) ? keywords : []
         const imageUrl = req.file ? `/uploads/${req.file.filename}`:null;
