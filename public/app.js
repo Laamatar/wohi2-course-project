@@ -116,12 +116,10 @@ async function handleAuth(e) {
   });
   if (isRegisterMode) {
     const captchaToken = grecaptcha.getResponse();
-    console.log("CAPTCHA VERIFY RESPONSE:", captchaToken.data);
     if (!captchaToken) {
       errorEl.textContent = "Please complete the CAPTCHA";
       return;
     }
-
     body.captchaToken = captchaToken;
   }
   try {
@@ -130,6 +128,8 @@ async function handleAuth(e) {
       method: "POST",
       body: JSON.stringify(body),
     });
+
+    console.log("REGISTER RESPONSE:", data);
     setToken(data.token);
     showApp();
   } catch (err) {
