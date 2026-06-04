@@ -18,7 +18,6 @@ function getCurrentUserRole() {
   if (!token) return null;
   try {
     const payload = JSON.parse(atob(token.split(".")[1]));
-    console.log(payload.role);
     return payload.role;
   } catch {
     return null;
@@ -45,7 +44,6 @@ async function apiFetch(route, options = {}) {
   if (token) headers["Authorization"] = `Bearer ${token}`;
   const res = await fetch(`${CONFIG.API_URL}${route}`, { ...options, headers });
   const data = await res.json();
-  console.log(data.error);
   if (!res.ok) throw new Error(data.error || data.msg || "Request failed");
   return data;
 }
@@ -117,7 +115,6 @@ function renderAuthForm() {
 
 async function handleAuth(e) {
 
-  console.log("HANDLE AUTH FIRED");
   e.preventDefault();
   const errorEl = document.getElementById("auth-error");
   errorEl.textContent = "";
@@ -138,7 +135,6 @@ async function handleAuth(e) {
     body.captchaToken = captchaToken;
   }
   try {
-    console.log("REGISTER BODY:", body);
     const data = await apiFetch(route, {
       method: "POST",
       body: JSON.stringify(body),
@@ -162,6 +158,7 @@ async function showApp() {
   document.getElementById("logout-btn").style.display = "inline-block";
   await loadQuestions();
 }
+
 
 async function loadQuestions(keyword = "", page = 1) {
   const container = document.getElementById("questions-container");
@@ -188,7 +185,25 @@ async function loadQuestions(keyword = "", page = 1) {
           <div class="score-value">${solvedCount}/${questions.length}</div>
           <div class="score-label">Solved (this page)</div>
         </div>
-      </div>
+        </div>
+        <div class="leaderboard"> <h2>Leaderboard</h2>`
+
+        const leaderboardData = await apiFetch(CONFIG.ROUTES.LEADERBOARD, {
+          method: "GET",
+        });
+
+
+        html += leaderboardData
+          .map((q, index) => {
+            const name = q.user?.name ?? "Unknown";
+            const score = q.correctCount ?? q._count?._all ?? 0;
+
+            return `<div><h4>${index + 1}. ${name}: ${score}</h4></div>`;
+          })
+          .join("");
+
+        html += `
+      </div> </div>
       <div class="toolbar">
         ${
               "player" === currentUserRole
@@ -222,6 +237,7 @@ async function loadQuestions(keyword = "", page = 1) {
             <span>
               <button class="btn btn-play" data-id="${q.id}">Play</button>
               <a href="#" class="read-more" data-id="${q.id}">See answer</a>
+              <h4>Difficulty: ${q.difficulty}/5</h4>
             </span>
             ${
               q.userId === currentUserId
@@ -383,6 +399,10 @@ async function showQuestionForm(qId) {
           <input type="text" id="q-keywords" value="${q.keywords ? q.keywords.join(", ") : ""}" />
         </div>
         <div class="form-group">
+          <label for="q-difficulty">Difficulty</label>
+          <input type="number" id="q-difficulty" value="${q.difficulty}" min="1" max="5" step="1" />
+        </div>
+        <div class="form-group">
           <label for="q-image">Image ${isEdit ? "(leave blank to keep current)" : "(optional)"}</label>
           <input type="file" id="q-image" accept="image/*" />
           ${isEdit && q.imageUrl ? `<img src="${q.imageUrl}" alt="" style="max-width:200px;margin-top:0.5rem;border-radius:4px" />` : ""}
@@ -406,6 +426,13 @@ async function showQuestionForm(qId) {
     body.append("question", document.getElementById("q-question").value);
     body.append("answer", document.getElementById("q-answer").value);
     body.append("keywords", document.getElementById("q-keywords").value);
+    if(document.getElementById("q-difficulty").value <= 5 && document.getElementById("q-difficulty").value >= 1) {
+      body.append("difficulty", document.getElementById("q-difficulty").value);
+    } else if (document.getElementById("q-difficulty").value > 5) {
+      body.append("difficulty", 5);
+    } else {
+      body.append("difficulty", 1);
+    }
     const imageFile = document.getElementById("q-image").files[0];
     if (imageFile) body.append("image", imageFile);
 

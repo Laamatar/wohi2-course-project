@@ -8,24 +8,28 @@ const seedQuestions = [
     answer:
       "HTTP is the foundation of communication on the web. It defines how clients and servers exchange data.",
     keywords: ["http", "web"],
+    difficulty:5,
   },
   {
     question: "What are REST APIs?",
     answer:
       "REST is an architectural style that uses standard HTTP methods like GET, POST, PUT, and DELETE.",
     keywords: ["http", "api"],
+    difficulty:5,
   },
   {
     question: "What is Node.js used for?",
     answer:
       "Node.js allows you to run JavaScript on the server using a non-blocking, event-driven architecture.",
     keywords: ["javascript", "backend"],
+    difficulty:4,
   },
   {
     question: "What are databases used for?",
     answer:
       "Databases store and organize data. Common types include relational databases like PostgreSQL and MySQL.",
     keywords: ["database", "backend"],
+    difficulty:4,
   },
 ];
 
@@ -73,6 +77,7 @@ async function main() {
         question: question.question,
         answer: question.answer,
         userId: user.id,
+        difficulty: question.difficulty,
         keywords: {
           connectOrCreate: question.keywords.map((kw) => ({
             where: { name: kw },

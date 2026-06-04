@@ -86,6 +86,34 @@ router.get("/", async (req, res) => {
     })
 });
 
+//GET /api/questions/leaderboard
+router.get("/leaderboard", async (req, res, next) =>{
+    try {
+        const top = await prisma.attempt.groupBy({
+            by: ['userId'],
+            where: { correct: true },
+            _count: { _all: true },
+            orderBy: { _count: { userId: 'desc' } },
+            take: 5
+        });
+
+        const users = await prisma.user.findMany({
+            where: {
+                id: { in: top.map(t => t.userId) }
+            }
+        });
+
+        const leaderboard = top.map(t => ({
+            user: users.find(u => u.id === t.userId),
+            correctCount: t._count._all
+        }));
+
+        res.json(leaderboard);
+    } catch {
+
+    }
+});
+
 //GET /api/questions/:qId
 router.get("/:qId", async (req, res, next) =>{
     try {

@@ -15,7 +15,6 @@ model User {
   questions    Question[]
   attempts  Attempt[]
   role      String @db.VarChar(255) @default("editor")
-
   @@map("users")
 }
 
@@ -24,6 +23,7 @@ model Question {
   id       Int       @id @default(autoincrement())
   question    String    @db.VarChar(255)
   answer     String    @db.VarChar(255)
+  difficulty  Int   @default(1)
   keywords Keyword[]
   imageUrl  String?   @db.VarChar(255)
   userId   Int
