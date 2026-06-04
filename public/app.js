@@ -87,20 +87,22 @@ function renderAuthForm() {
     renderAuthForm();
   });
   if (isRegisterMode) {
-  setTimeout(() => {
-    if (window.grecaptcha) {
-      grecaptcha.render(
-        document.querySelector(".g-recaptcha"),
-        {
-          sitekey: "6LeKvQwtAAAAANCGL2dghRITn-ds4ycPB-auNVhx"
-        }
-      );
-    }
-  }, 0);
-}
+    setTimeout(() => {
+      if (window.grecaptcha) {
+        grecaptcha.render(
+          document.querySelector(".g-recaptcha"),
+          {
+            sitekey: "6LeKvQwtAAAAANCGL2dghRITn-ds4ycPB-auNVhx"
+          }
+        );
+      }
+    }, 0);
+  }
 }
 
 async function handleAuth(e) {
+
+  console.log("HANDLE AUTH FIRED");
   e.preventDefault();
   const errorEl = document.getElementById("auth-error");
   errorEl.textContent = "";
@@ -114,7 +116,7 @@ async function handleAuth(e) {
   });
   if (isRegisterMode) {
     const captchaToken = grecaptcha.getResponse();
-
+    console.log("CAPTCHA VERIFY RESPONSE:", captchaToken.data);
     if (!captchaToken) {
       errorEl.textContent = "Please complete the CAPTCHA";
       return;
